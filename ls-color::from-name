@@ -16,17 +16,17 @@ case $2 in
 0|'')
 	zstat -A stat -L $1 || return 1
 	ls-color::from-array $1 stat
-	reply+=($REPLY)
+	reply=($REPLY)
 ;;
 1)
 	zstat -A stat    $1 || return 1
 	ls-color::from-array $1 stat
-	reply+=($REPLY)
+	reply=($REPLY)
 ;;
 2)
 	zstat -A stat -L $1 || return 1
 	ls-color::from-array $1 stat
-	reply+=($REPLY)
+	reply=($REPLY)
 	zstat -A stat    $1 || return 1
 	ls-color::from-array $1 stat
 	reply+=($REPLY)
