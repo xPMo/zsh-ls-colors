@@ -1,0 +1,49 @@
+#!/usr/bin/env zsh
+# Usage:
+# $1: filename
+# $2: Array containing the results of a zstat call
+#
+# Sets REPLY to the console code
+
+local -i reg=0
+local -a codes
+# See man 7 inode for more info
+local -i st_mode=$stat[3]
+
+# file type
+case $(( st_mode & 0170000 )) in
+	$(( 0140000 )) ) codes=( $ftcolors[so] ) ;;
+	$(( 0120000 )) ) # symlink, special handling
+		if [[ -e $1 ]]
+		then REPLY=$ftcolors[ln]
+		else REPLY=$ftcolors[or]
+		fi
+		return
+	;;
+	$(( 0100000 )) ) codes=( ); reg=1 ;; # regular file
+	$(( 0060000 )) ) codes=( $ftcolors[bd] ) ;;
+	$(( 0040000 )) ) codes=( $ftcolors[di] ) ;;
+	$(( 0020000 )) ) codes=( $ftcolors[cd] ) ;;
+	$(( 0010000 )) ) codes=( $ftcolors[pi] ) ;;
+esac
+
+# setuid/setgid/sticky/other-writable
+(( st_mode & 04000 )) && codes+=( $ftcolors[su] )
+(( st_mode & 02000 )) && codes+=( $ftcolors[sg] )
+(( ! reg )) && case $(( st_mode & 01002 )) in
+	# sticky
+	$(( 01000 )) ) codes+=( $ftcolors[st] ) ;;
+	# other-writable
+	$(( 00002 )) ) codes+=( $ftcolors[ow] ) ;;
+	# other-writable and sticky
+	$(( 01002 )) ) codes+=( $ftcolors[tw] ) ;;
+esac
+
+# executable
+if (( ! $#codes )); then
+	(( st_mode &  0111 )) && codes+=( $ftcolors[ex] )
+fi
+REPLY=${(j:;:)codes}
+
+# finally, lookup using namecolors
+: ${REPLY:=$namecolors[(k)$1]}
