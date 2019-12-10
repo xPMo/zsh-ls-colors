@@ -1,5 +1,7 @@
 # zsh-ls-colors
 
+![Demo screenshot](https://raw.githubusercontent.com/xPMo/zsh-ls-colors/image/demo.png)
+
 A zsh library to use `LS_COLORS` in scripts or other plugins.
 
 For a simple demo, see the `demo` script in this repo.
