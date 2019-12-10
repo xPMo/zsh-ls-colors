@@ -33,5 +33,5 @@ case $2 in
 	ls-color::from-mode $1 $stat[3]
 	reply+=($REPLY)
 ;;
+*) return 2 ;;
 esac
-
