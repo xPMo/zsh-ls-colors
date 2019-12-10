@@ -5,6 +5,9 @@
 #
 # Sets REPLY to the console code
 
+emulate -L zsh
+setopt octalzeroes
+
 local -i reg=0
 local -a codes
 # See man 7 inode for more info

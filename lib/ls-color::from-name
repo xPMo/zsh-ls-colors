@@ -9,6 +9,8 @@
 # Either sets reply=( $code [ $code ] ) depending on $2
 # or returns non-zero
 
+emulate -L zsh
+
 local -a stat
 local REPLY
 zmodload -F zsh/stat b:zstat
