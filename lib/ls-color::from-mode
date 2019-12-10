@@ -7,7 +7,7 @@
 # Sets REPLY to the console code
 
 emulate -L zsh
-setopt cbases octalzeroes
+setopt cbases octalzeroes extendedglob
 
 local -i reg=0
 local -a codes
