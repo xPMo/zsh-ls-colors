@@ -10,6 +10,6 @@ Begin by calling `ls-colors::init`.
 This will set the arrays `modecolors` and `namecolors`.
 
 For more advanced usage,
-instructions are located at top of the source files for `from-array` and `from-name`.
+instructions are located at top of the source files for `from-mode` and `from-name`.
 If a use case isn't adequately covered,
 please open an issue!
