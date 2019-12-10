@@ -7,6 +7,7 @@
 #     if 3,          Look up using lstat, put file path in array
 #                    If it is a symlink, put the link path in the array
 #                    If the symlink is not broken, look up using stat.
+#     if -1,         Don't look up stat, only use namecolors
 #
 # For mode 0/1: sets reply=( code )
 # For mode 2:   sets reply=( lstat_code stat_code )
@@ -20,6 +21,10 @@ local -a stat
 local REPLY
 zmodload -F zsh/stat b:zstat
 case $2 in
+-1)
+	ls-color::from-mode $1
+	reply=($REPLY)
+;;
 0|'')
 	zstat -A stat -L $1 || return 1
 	ls-color::from-mode $1 $stat[3]
