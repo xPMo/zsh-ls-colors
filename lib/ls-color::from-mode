@@ -15,6 +15,7 @@ local -a codes
 # if $2 is empty, skip ftcolors lookup
 if [[ $2 ]]; then
 
+local -i st_mode=$(($2))
 # See man 7 inode for more info
 # file type
 case $(( st_mode & 0170000 )) in
