@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+#set $0 (ref: zdharma.org/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html#zero-handling)
+0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
+0="${${(M)0:#/*}:-$PWD/$0}"
+
+# load library functions
+fpath+=("${0%/*}/lib")
+autoload -z ls-color::{from-array,from-name,init}
+
+# init (sets ftcolors and namecolors)
+ls-color::init
+
+# color each file in the argument list
+local file reply
+for file; do
+	ls-color::from-name $file
+	print '\e['$reply[1]'m'$file'\e[0m'
+done
