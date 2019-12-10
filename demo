@@ -5,7 +5,7 @@
 
 # load library functions
 fpath+=("${0%/*}/lib")
-autoload -z ls-color::{init,from-array,from-name}
+autoload -z ls-color::{init,from-mode,from-name}
 
 # init (sets ftcolors and namecolors)
 ls-color::init

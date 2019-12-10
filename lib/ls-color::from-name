@@ -17,20 +17,20 @@ zmodload -F zsh/stat b:zstat
 case $2 in
 0|'')
 	zstat -A stat -L $1 || return 1
-	ls-color::from-array $1 stat
+	ls-color::from-array $1 $stat[3]
 	reply=($REPLY)
 ;;
 1)
 	zstat -A stat    $1 || return 1
-	ls-color::from-array $1 stat
+	ls-color::from-array $1 $stat[3]
 	reply=($REPLY)
 ;;
 2)
 	zstat -A stat -L $1 || return 1
-	ls-color::from-array $1 stat
+	ls-color::from-array $1 $stat[3]
 	reply=($REPLY)
 	zstat -A stat    $1 || return 1
-	ls-color::from-array $1 stat
+	ls-color::from-array $1 $stat[3]
 	reply+=($REPLY)
 ;;
 esac

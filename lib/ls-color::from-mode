@@ -1,18 +1,21 @@
 #!/usr/bin/env zsh
 # Usage:
 # $1: filename
-# $2: Array containing the results of a zstat call
+# $2: The value of struct stat st_mode
+#     If empty, ftcolors lookup will be skipped
 #
 # Sets REPLY to the console code
 
 emulate -L zsh
-setopt octalzeroes
+setopt cbases octalzeroes
 
 local -i reg=0
 local -a codes
-# See man 7 inode for more info
-local -i st_mode=$stat[3]
 
+# if $2 is empty, skip ftcolors lookup
+if [[ $2 ]]; then
+
+# See man 7 inode for more info
 # file type
 case $(( st_mode & 0170000 )) in
 	$(( 0140000 )) ) codes=( $ftcolors[so] ) ;;
@@ -47,6 +50,8 @@ if (( ! $#codes )); then
 	(( st_mode &  0111 )) && codes+=( $ftcolors[ex] )
 fi
 REPLY=${(j:;:)codes}
+
+fi
 
 # finally, lookup using namecolors
 : ${REPLY:=$namecolors[(k)$1]}
