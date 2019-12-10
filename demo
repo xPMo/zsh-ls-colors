@@ -9,6 +9,14 @@ autoload -z ls-color::{init,from-mode,from-name}
 
 # init (sets modecolors and namecolors)
 ls-color::init
+# Optional argument can be used instead of LS_COLORS
+#ls-color::init "$LS_COLORS:*.md=01;03"
+
+# colors can also be added for other globs after init as well:
+namecolors[*.md]='01'                  # bold markdown files
+
+# EXTENDED_GLOB is enabled when matching, so things like this are possible:
+namecolors[(#i)(*/|)license(|.*)]='04'  # underline LICENSE, or license.txt, or similar
 
 # color each file in the argument list
 local file reply
