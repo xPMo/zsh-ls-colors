@@ -4,8 +4,13 @@
 # $2: if 0 or empty, lookup using lstat (do not follow symlink)
 #     if 1,          lookup using  stat (do     follow symlink)
 #     if 2,          lookup using both
+#     if 3,          lookup using lstat. If it is a symlink,
+#                    l
 # $3: array name. If empty, use $reply
 #
+# For modes 0 and 1: sets reply=( code )
+# For mode 2:        sets reply=( lstat_code stat_code )
+# For mode 3:        sets reply=( lstat_code name [ stat_code stat[link] ] )
 # Either sets reply=( $code [ $code ] ) depending on $2
 # or returns non-zero
 
@@ -32,6 +37,16 @@ case $2 in
 	zstat -A stat    $1 || return 1
 	ls-color::from-mode $1 $stat[3]
 	reply+=($REPLY)
+;;
+3)
+	zstat -A stat -L $1 || return 1
+	ls-color::from-mode $1 $stat[3]
+	reply=("$REPLY" $1 ${stat[14]:+$REPLY} $stat[14])
+	if [[ -h $1 ]]; then
+		zstat -A stat $1 || return 1
+		ls-color::from-mode $1 $stat[3]
+		reply[3]="$REPLY"
+	fi
 ;;
 *) return 2 ;;
 esac

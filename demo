@@ -13,6 +13,8 @@ ls-color::init
 # color each file in the argument list
 local file reply
 for file; do
-	ls-color::from-name $file
-	print '\e['$reply[1]'m'$file'\e[0m'
+	ls-color::from-name $file 3
+
+	# point to symlink resolution if it exists
+	print '\e['$reply[1]'m'$file'\e[0m'${reply[3]:+' → \e['$reply[3]'m'$reply[4]'\e[0m'}
 done
