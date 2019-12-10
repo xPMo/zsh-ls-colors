@@ -42,7 +42,7 @@ case $2 in
 	zstat -A stat -L $1 || return 1
 	ls-color::from-mode $1 $stat[3]
 	reply=("$REPLY" $1 ${stat[14]:+$REPLY} $stat[14])
-	if [[ -h $1 ]]; then
+	if [[ -n $stat[14] && -e $1 ]]; then
 		zstat -A stat $1 || return 1
 		ls-color::from-mode $1 $stat[3]
 		reply[3]="$REPLY"
