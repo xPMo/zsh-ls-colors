@@ -9,11 +9,11 @@
 emulate -L zsh
 setopt cbases octalzeroes extendedglob
 
+[[ -z $2 ]] && return 1
+
 local -i reg=0
 local -a codes
 
-# if $2 is empty, skip modecolors lookup
-if [[ $2 ]]; then
 
 local -i st_mode=$(($2))
 # See man 7 inode for more info
@@ -50,9 +50,6 @@ esac
 if (( ! $#codes )); then
 	(( st_mode &  0111 )) && codes+=( $modecolors[ex] )
 fi
-REPLY=${(j:;:)codes}
 
-fi
-
-# finally, lookup using namecolors
-: ${REPLY:=$namecolors[(k)$1]}
+# return nonzero if no matching code
+[[ ${REPLY::=${(j:;:)codes}} ]]

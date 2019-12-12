@@ -1,59 +1,9 @@
 #!/usr/bin/env zsh
 # Usage:
 # $1: filename
-# $2: if 0 or empty, Look up using lstat (do not follow symlink)
-#     if 1,          Look up using  stat (do     follow symlink)
-#     if 2,          Look up using both
-#     if 3,          Look up using lstat, put file path in array
-#                    If it is a symlink, put the link path in the array
-#                    If the symlink is not broken, look up using stat.
-#     if -1,         Don't look up stat, only use namecolors
 #
-# For mode 0/1: sets reply=( code )
-# For mode 2:   sets reply=( lstat_code stat_code )
-# For mode 3:   sets reply=( lstat_code name [ stat_code stat[link] ] )
-# Either sets reply=( $code [ $code ] ) depending on $2
-# or returns non-zero
+# Sets REPLY to the console code
 
 emulate -L zsh
-
-local -a stat
-local REPLY
-zmodload -F zsh/stat b:zstat
-case $2 in
--1)
-	ls-color::from-mode $1
-	reply=($REPLY)
-;;
-0|'')
-	zstat -A stat -L $1 || return 1
-	ls-color::from-mode $1 $stat[3]
-	reply=($REPLY)
-;;
-1)
-	zstat -A stat    $1 || return 1
-	ls-color::from-mode $1 $stat[3]
-	reply=($REPLY)
-;;
-2)
-	zstat -A stat -L $1 || return 1
-	ls-color::from-mode $1 $stat[3]
-	reply=($REPLY)
-	zstat -A stat    $1 || return 1
-	ls-color::from-mode $1 $stat[3]
-	reply+=($REPLY)
-;;
-3)
-	zstat -A stat -L $1 || return 1
-	ls-color::from-mode $1 $stat[3]
-	# $stat[14] will be empty if not a symlink
-	reply=("$REPLY" $1 ${stat[14]:+$REPLY} $stat[14])
-	if [[ -n $stat[14] && -e $1 ]]; then
-		# not broken, look up
-		zstat -A stat $1 || return 1
-		ls-color::from-mode $1 $stat[3]
-		reply[3]="$REPLY"
-	fi
-;;
-*) return 2 ;;
-esac
+setopt extendedglob
+(( ${#REPLY::=$namecolors[(k)$1]} ))

@@ -5,7 +5,7 @@
 
 # load library functions
 fpath+=("${0%/*}/lib")
-autoload -z ls-color::{init,from-mode,from-name}
+autoload -z ls-color::{init,from-mode,from-name,match-by}
 
 # init (sets modecolors and namecolors)
 ls-color::init
@@ -21,8 +21,30 @@ namecolors[(#i)(*/|)license(|.*)]='04'  # underline LICENSE, or license.txt, or 
 # color each file in the argument list
 local file reply
 for file; do
-	ls-color::from-name $file 3
+	ls-color::match-by $file all
 
 	# point to symlink resolution if it exists
-	print '\e['$reply[1]'m'$file'\e[0m'${reply[3]:+' → \e['$reply[3]'m'$reply[4]'\e[0m'}
+	print '\e['$reply[1]'m'$file'\e[0m'${reply[2]:+' → \e['$reply[2]'m'$reply[3]'\e[0m'}
+	continue
+
+	# =======================
+	# Alternate manual method:
+	ls-color::match-by $file lstat follow
+	if [[ $reply[2] ]]; then
+		# This is a symlink
+		symlink_color=$reply[1]
+		# If broken, use link color for destination
+		resolved_color=$reply[1]
+		resolved=$reply[2]
+		if [[ -e $file ]]; then
+			# Not broken, update destination color
+			ls-color::match-by $file stat
+			resolved_color=$reply[1]
+		fi
+		print '\e['$symlink_color'm'$file'\e[0m → \e['$resolved_color'm'$resolved'\e[0m'
+	else
+		# This is not a symlink
+		print '\e['$reply[1]'m'$file'\e[0m'
+	fi
+
 done
