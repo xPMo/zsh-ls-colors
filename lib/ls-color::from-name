@@ -6,4 +6,6 @@
 
 emulate -L zsh
 setopt extendedglob
-(( ${#REPLY::=$namecolors[(k)$1]} ))
+
+# Return non-zero if no keys match
+[[ ${REPLY::=$namecolors[(k)$1]} ]]
