@@ -4,8 +4,11 @@
 0="${${(M)0:#/*}:-$PWD/$0}"
 
 # load library functions
-fpath+=("${0%/*}/lib")
-autoload -z ls-color::{init,from-mode,from-name,match-by}
+source ls-colors.zsh ''
+
+# to name the functions with a different namespace
+# call source with a different argument
+#source my-plugin::ls
 
 # init (sets modecolors and namecolors)
 ls-color::init
@@ -18,17 +21,17 @@ namecolors[*.md]='01'                  # bold markdown files
 # EXTENDED_GLOB is enabled when matching, so things like this are possible:
 namecolors[(#i)(*/|)license(|.*)]='04'  # underline LICENSE, or license.txt, or similar
 
-# color each file in the argument list
 local file reply
+# color each file in the argument list
 for file; do
 	ls-color::match-by $file all
-
 	# point to symlink resolution if it exists
 	print '\e['$reply[1]'m'$file'\e[0m'${reply[2]:+' → \e['$reply[2]'m'$reply[3]'\e[0m'}
-	continue
+done
 
-	# =======================
-	# Alternate manual method:
+# =======================
+# Alternate manual method:
+for file; do
 	ls-color::match-by $file lstat follow
 	if [[ $reply[2] ]]; then
 		# This is a symlink
@@ -46,5 +49,5 @@ for file; do
 		# This is not a symlink
 		print '\e['$reply[1]'m'$file'\e[0m'
 	fi
-
 done
+
