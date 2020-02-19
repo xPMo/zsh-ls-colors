@@ -17,9 +17,12 @@ ${pfx}::from-mode () {
 
 	[[ -z $2 ]] && return 1
 
+	local pfx=${0%::from-mode}
+	local m="${pfx//[^[:IDENT:]]}_modecolors"
+	local -A modecolors=($m)
+
 	local -i reg=0
 	local -a codes
-
 
 	local -i st_mode=$(($2))
 	# See man 7 inode for more info
@@ -70,8 +73,14 @@ ${pfx}::from-name () {
 	emulate -L zsh
 	setopt extendedglob
 
+	local pfx=${0%::from-name}
+	local n="${pfx//[^[:IDENT:]]}_namecolors"
+
+	# convert to associative
+	local -A namecolors=($n)
+
 	# Return non-zero if no keys match
-	[[ ${REPLY::=$namecolors[(k)$1]} ]]
+	[[ ${REPLY::=${namecolors[(k)$1]}} ]]
 } # }}}
 # {{{ Init
 ${pfx}::init () {
@@ -82,8 +91,13 @@ ${pfx}::init () {
 	local LS_COLORS=${1:-${LS_COLORS:-$LSCOLORS}}
 
 	# read in LS_COLORS
-	typeset -gA namecolors=(${(@s:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
-	typeset -gA modecolors=(${(@Ms:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
+	
+	local pfx=${0%::init}
+	local n="${pfx//[^[:IDENT:]]}_namecolors"
+	local m="${pfx//[^[:IDENT:]]}_modecolors"
+	typeset -ga "$n" "$m"
+	: ${(P)n::=${(@s:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*}}
+	: ${(P)m::=${(@Ms:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*}}
 }
 # }}}
 # {{{ Match by

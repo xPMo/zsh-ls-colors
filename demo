@@ -15,12 +15,6 @@ ls-color::init
 # Optional argument can be used instead of LS_COLORS
 #ls-color::init "$LS_COLORS:*.md=01;03"
 
-# colors can also be added for other globs after init as well:
-namecolors[*.md]='01'                  # bold markdown files
-
-# EXTENDED_GLOB is enabled when matching, so things like this are possible:
-namecolors[(#i)(*/|)license(|.*)]='04'  # underline LICENSE, or license.txt, or similar
-
 local file reply
 # color each file in the argument list
 for file; do
