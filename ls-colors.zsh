@@ -74,6 +74,7 @@ ${pfx}::from-name () {
 	[[ ${REPLY::=$namecolors[(k)$1]} ]]
 } # }}}
 # {{{ Init
+# WARNING: initializes namecolors and modecolors in global scope
 ${pfx}::init () {
 	emulate -L zsh
 
@@ -112,8 +113,14 @@ ${pfx}::match-by () {
 	local arg REPLY name=$1 pfx=${0%::match-by}
 	shift
 
-	if [[ ${1:l} = (g|global) ]]
-	then shift
+	# init in local scope if not using global params
+	if ! [[ -v namecolors && -v modecolors ]]; then
+		local -A namecolors modecolors
+		${pfx}::init
+	fi
+
+	if [[ ${1:l} = (g|global) ]]; then
+		shift
 	else
 		local -a stat lstat
 		declare -ga reply=()
