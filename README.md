@@ -60,9 +60,55 @@ this plugin allows you to customize the preifix for your plugin:
 ```zsh
 # load functions as my-lscolors::{init,match-by,from-name,from-mode}
 source ${0:h}/ls-colors/ls-colors.zsh my-lscolors
-
-my-lscolors::init
-...
 ```
 
+### Parameter namespacing
+
+While indirect parameter expansion exists with `${(P)var}`,
+it doesn't play nicely with array parameters.
+
+There are multiple strategies to prevent unnecessary re-parsing:
+
+```zsh
+# Call once when loading.
+# Pollutes global namespace but prevents re-parsing
+ls-color::init
+```
+
+```zsh
+# Don't call init at all and only use ::match-by.
+# Doesn't pollute global namespace but reparses LS_COLORS on every call
+ls-color::match-by $file lstat
+```
+
+```zsh
+# Initialize within a scope with local parameters.
+# Best for not polluting global namespace when multiple filenames need to be parsed.
+(){
+	local -A namecolors modecolors
+	ls-color::init
+
+	for arg; do
+		...
+	done
+}
+```
+
+```zsh
+# Serialize:
+typeset -g LS_COLORS_CACHE_FILE=$(mktemp)
+(){
+	local -A namecolors modecolors
+	ls-color::init
+	typeset -p modecolors namecolors >| $LS_COLORS_CACHE_FILE
+	zcompile $LS_COLORS_CACHE_FILE
+}
+
+my-function(){
+	local -A namecolors modecolors
+	source $LS_COLORS_CACHE_FILE
+
+	...
+}
+```
 

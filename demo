@@ -11,9 +11,21 @@ source ls-colors.zsh ''
 #source my-plugin::ls
 
 # init (sets modecolors and namecolors)
+# You have options. Either you can pollute global namespace:
 ls-color::init
-# Optional argument can be used instead of LS_COLORS
-#ls-color::init "$LS_COLORS:*.md=01;03"
+# Or you can have ::match-by re-parse colors on every call
+:     # (do nothing)
+# Or if you have multiple calls, you can parse colors once for a scope:
+(){
+	local -A modecolors namecolors
+	ls-color::init
+
+	for arg; do
+		ls-color::match-by $arg lstat
+		: do something else
+	done
+}
+
 
 # colors can also be added for other globs after init as well:
 namecolors[*.md]='01'                  # bold markdown files
