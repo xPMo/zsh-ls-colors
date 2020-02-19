@@ -19,7 +19,7 @@ ${pfx}::from-mode () {
 
 	local pfx=${0%::from-mode}
 	local m="${pfx//[^[:IDENT:]]}_modecolors"
-	local -A modecolors=($m)
+	local -A modecolors=(${(P)m})
 
 	local -i reg=0
 	local -a codes
@@ -77,7 +77,7 @@ ${pfx}::from-name () {
 	local n="${pfx//[^[:IDENT:]]}_namecolors"
 
 	# convert to associative
-	local -A namecolors=($n)
+	local -A namecolors=(${(P)n})
 
 	# Return non-zero if no keys match
 	[[ ${REPLY::=${namecolors[(k)$1]}} ]]
