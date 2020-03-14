@@ -141,7 +141,7 @@ ${pfx}::match-by () {
 			(($#lstat)) || zstat -A lstat -L $name || return 1
 			if ((lstat[3] & 0170000 )); then
 				# follow symlink
-				(($#stat)) || zstat -A stat    $name
+				(($#stat)) || zstat -A stat $name 2>/dev/null
 			fi
 			${pfx}::from-mode "$name" "$lstat[3]" $stat[3]
 			if [[ $REPLY || ${2[1]} = L ]]; then
