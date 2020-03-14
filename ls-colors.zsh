@@ -8,7 +8,9 @@ local pfx=${1:-'ls-color'}
 # $1: filename
 # $2: The value of struct stat st_mode
 #     If empty, modecolors lookup will be skipped
-#
+# $3: (If symlink) The value of struct stat st_mode
+#     for the target of $1's symlink. If unset,
+#     interpret as a broken link.
 # Sets REPLY to the console code
 ${pfx}::from-mode () {
 
@@ -20,16 +22,18 @@ ${pfx}::from-mode () {
 	local -i reg=0
 	local -a codes
 
-
 	local -i st_mode=$(($2))
 	# See man 7 inode for more info
 	# file type
 	case $(( st_mode & 0170000 )) in
 		$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
 		$(( 0120000 )) ) # symlink, special handling
-			if [[ -e $1 ]]
-			then REPLY=$modecolors[ln]
-			else REPLY=$modecolors[or]
+			if ! (($+3)); then
+				REPLY=$modecolors[or]
+			elif [[ $modecolors[ln] = target ]]; then
+				"$0" "$1" "${@:3}"
+			else
+				REPLY=$modecolors[ln]
 			fi
 			return
 		;;
@@ -108,7 +112,7 @@ ${pfx}::init () {
 # or returns non-zero
 ${pfx}::match-by () {
 	emulate -L zsh
-	setopt extendedglob
+	setopt extendedglob cbases octalzeroes
 
 	local arg REPLY name=$1 pfx=${0%::match-by}
 	shift
@@ -135,7 +139,11 @@ ${pfx}::match-by () {
 		;;
 		l|lstat)
 			(($#lstat)) || zstat -A lstat -L $name || return 1
-			${pfx}::from-mode $name $lstat[3]
+			if ((lstat[3] & 0170000 )); then
+				# follow symlink
+				(($#stat)) || zstat -A stat    $name
+			fi
+			${pfx}::from-mode "$name" "$lstat[3]" $stat[3]
 			if [[ $REPLY || ${2[1]} = L ]]; then
 				reply+=("$REPLY")
 			else # fall back to name
