@@ -1,5 +1,3 @@
-#!/usr/bin/env zsh
-
 # set the prefix for all functions
 local pfx=${1:-'ls-color'}
 
@@ -13,6 +11,7 @@ local pfx=${1:-'ls-color'}
 #     interpret as a broken link.
 # Sets REPLY to the console code
 ${pfx}::from-mode () {
+	# See man 7 inode for more info
 
 	emulate -L zsh
 	setopt cbases octalzeroes extendedglob
@@ -23,7 +22,6 @@ ${pfx}::from-mode () {
 	local -a codes
 
 	local -i st_mode=$(($2))
-	# See man 7 inode for more info
 	# file type
 	case $(( st_mode & 0170000 )) in
 		$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
@@ -89,8 +87,7 @@ ${pfx}::init () {
 	# read in LS_COLORS
 	typeset -gA namecolors=(${(@s:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
 	typeset -gA modecolors=(${(@Ms:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
-}
-# }}}
+} # }}}
 # {{{ Match by
 # Usage:
 # $1: filename
@@ -131,8 +128,7 @@ ${pfx}::match-by () {
 	fi
 
 	zmodload -F zsh/stat b:zstat
-	for arg; do
-		case ${arg[1]:l} in
+	for arg; do case ${arg[1]:l} in
 		n|name)
 			${pfx}::from-name $name
 			reply+=("$REPLY")
@@ -179,8 +175,6 @@ ${pfx}::match-by () {
 			fi
 		;;
 		*) return 2 ;;
-		esac
-	done
-}
-# }}}
+	esac; done
+} # }}}
 # vim: set foldmethod=marker:
