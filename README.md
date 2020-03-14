@@ -1,4 +1,4 @@
-# zsh-ls-colors
+# Zsh support for LS_COLORS
 
 ![Demo screenshot](https://raw.githubusercontent.com/xPMo/zsh-ls-colors/image/demo.png)
 
@@ -9,7 +9,7 @@ For a simple demo, see the `demo` script in this repo.
 For more advanced usage,
 instructions are located at top of the source files for `from-mode` and `from-name`.
 If a use case isn't adequately covered,
-please open an issue!
+please [open an issue](https://github.com/xPMo/zsh-ls-colors/issues/) !
 
 ## Using zsh-ls-colors in a plugin
 
@@ -65,25 +65,30 @@ source ${0:h}/ls-colors/ls-colors.zsh my-lscolors
 ### Parameter namespacing
 
 While indirect parameter expansion exists with `${(P)var}`,
-it doesn't play nicely with array parameters.
+it doesn't play nicely with array parameters,
+and especially not with associative arrays.
 
 There are multiple strategies to prevent unnecessary re-parsing:
 
+**Call `init` in global scope.**
+This pollutes global namespace but prevents re-parsing `$LS_COLORS` on every function call.
 ```zsh
-# Call once when loading.
-# Pollutes global namespace but prevents re-parsing
 ls-color::init
 ```
 
+**Don't call init at all:**
+This is only compatible with `::match-by`,
+and reparses LS_COLORS each time,
+but it doesn't pollute global namespace.
+
 ```zsh
-# Don't call init at all and only use ::match-by.
-# Doesn't pollute global namespace but reparses LS_COLORS on every call
 ls-color::match-by $file lstat
 ```
 
+**Initialize within a scope with local parameters.**
+Best for not polluting global namespace when multiple filenames need to be parsed.
+
 ```zsh
-# Initialize within a scope with local parameters.
-# Best for not polluting global namespace when multiple filenames need to be parsed.
 (){
 	local -A namecolors modecolors
 	ls-color::init
@@ -94,21 +99,23 @@ ls-color::match-by $file lstat
 }
 ```
 
+**Custom parameter:** Save the array value as your own custom parameter to copy back.
 ```zsh
-# Serialize:
-typeset -g LS_COLORS_CACHE_FILE=$(mktemp)
-(){
+(){ # initially
 	local -A namecolors modecolors
 	ls-color::init
-	typeset -p modecolors namecolors >| $LS_COLORS_CACHE_FILE
-	zcompile $LS_COLORS_CACHE_FILE
+	typeset -ga _my_modecolors=("${(@kv)modecolors}")    # you MUST use (@kv) to avoid losing empty entries
+	typeset -ga _my_namecolors=("${(kv)namecolors[@]}")  # alternatively, use bash-style [@]
 }
 
 my-function(){
-	local -A namecolors modecolors
-	source $LS_COLORS_CACHE_FILE
+	local -A modecolors=("${(@)_my_modecolors}")         # you MUST use (@) to avoid losing empty entries
+	local -A namecolors=("${_my_namecolors[@]}")         # alternatively, use bash-style [@]
 
 	...
 }
 ```
 
+## About the plugin:
+
+You can find the plugin at [xPMo/zsh-ls-colors](https://github.com/xPMo/zsh-ls-colors/).
