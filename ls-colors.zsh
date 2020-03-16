@@ -3,10 +3,9 @@ local pfx=${1:-'ls-color'}
 
 # {{{ From mode
 # Usage:
-# $1: filename
-# $2: The value of struct stat st_mode
+# $1: The value of struct stat st_mode
 #     If empty, modecolors lookup will be skipped
-# $3: (If symlink) The value of struct stat st_mode
+# $2: (If symlink) The value of struct stat st_mode
 #     for the target of $1's symlink. If unset,
 #     interpret as a broken link.
 # Sets REPLY to the console code
@@ -16,7 +15,7 @@ ${pfx}::from-mode () {
 	emulate -L zsh
 	setopt cbases octalzeroes extendedglob
 
-	[[ -z $2 ]] && return 1
+	[[ -z $1 ]] && return 1
 
 	local -i reg=0
 	local -a codes
@@ -26,10 +25,10 @@ ${pfx}::from-mode () {
 	case $(( st_mode & 0170000 )) in
 		$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
 		$(( 0120000 )) ) # symlink, special handling
-			if ! (($+3)); then
+			if ! (($+2)); then
 				REPLY=$modecolors[or]
 			elif [[ $modecolors[ln] = target ]]; then
-				"$0" "$1" "${@:3}"
+				"$0" "${@:2}"
 			else
 				REPLY=$modecolors[ln]
 			fi
@@ -139,7 +138,7 @@ ${pfx}::match-by () {
 				# follow symlink
 				(($#stat)) || zstat -A stat $name 2>/dev/null
 			fi
-			${pfx}::from-mode "$name" "$lstat[3]" $stat[3]
+			${pfx}::from-mode "$lstat[3]" $stat[3]
 			if [[ $REPLY || ${2[1]} = L ]]; then
 				reply+=("$REPLY")
 			else # fall back to name
@@ -148,7 +147,7 @@ ${pfx}::match-by () {
 		;;
 		s|stat)
 			(($#stat)) || zstat -A stat    $name || return 1
-			${pfx}::from-mode $name $stat[3]
+			${pfx}::from-mode $stat[3]
 			reply+=("$REPLY")
 			if [[ $REPLY || ${arg[1]} = S ]]; then
 				reply+=("$REPLY")
