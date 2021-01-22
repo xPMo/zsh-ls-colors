@@ -172,28 +172,29 @@ ${pfx}::match-by () {
 # $2: filename
 # $3: mode of file (if not, will attempt to resolve file)
 # $4: target of symlink (only applies if file is symlink)
-# $4: mode of target (only applies if file is symlink)
+# $5: mode of target (only applies if file is symlink)
 ${pfx}::lookup(){
 	emulate -L zsh
 	setopt cbases octalzeroes
 
-	local pfx=${0%::lookup}
+	local pfx=${0%::lookup} style=$1 target=$2 ln_target=$4 ln_mode=$5
 	local -a lscolors lstat
 
 	# lookup list-colors for the current context
-	zstyle -a "$1" list-colors lscolors
-	zstyle -t "$1" list-colors-extended &&
+	zstyle -a "$style" list-colors lscolors
+	zstyle -t "$style" list-colors-extended &&
 		setopt extendedglob
 
 	local -A namecolors=(${(@s:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
 	local -A modecolors=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
 
-	[[ -z $2 ]] && return 1
+	[[ -z $target ]] && return 1
 
-	if ! (($+3)); then
-		zstat -A lstat -L "$2"
-		3=$lstat[3]
-		4=$lstat[14]
+	local -i st_mode=$3
+	if ! (($#3)); then
+		zstat -A lstat -L "$target"
+		st_mode=$lstat[3]
+		ln_target=$lstat[14]
 	fi
 
 	# See man 7 inode for more info
@@ -201,7 +202,6 @@ ${pfx}::lookup(){
 	local -i reg=0
 	local -a codes
 
-	local -i st_mode=$(($3))
 	# file type
 	repeat 2; do # repeat if symlink
 		case $(( st_mode & 0170000 )) in
@@ -209,9 +209,10 @@ ${pfx}::lookup(){
 			$(( 0120000 )) ) # symlink, special handling
 				# correct relative symlinks
 				# does the target exist?
-				if zstat -A lstat "$2" 2>/dev/null; then
+				if [[ -n $ln_mode ]] || zstat -A lstat "$target" 2>/dev/null; then
 					if [[ $modecolors[ln] = target ]]; then
-						2=${2:A}
+						# use $target:A instead of $ln_target to resolve symlink chains
+						target=${target:A}
 						st_mode=$(($lstat[3]))
 						continue
 					else
@@ -251,7 +252,7 @@ ${pfx}::lookup(){
 	REPLY=${(j:;:)codes}
 
 	# return nonzero if no matching code
-	[[ ${REPLY:=$namecolors[(k)$2]} ]]
+	[[ ${REPLY:=$namecolors[(k)$target]} ]]
 
 } # }}}
 # vim: set foldmethod=marker:

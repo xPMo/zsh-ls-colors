@@ -10,7 +10,7 @@ source ls-colors.zsh ''
 #source my-plugin::ls
 
 # Same as :completion:* list-colors
-zstyle ':demo:*' list-colors "${(@s[:])LS_COLORS}"
+zstyle '*' list-colors "${(@s[:])LS_COLORS}" '*.md=35'
 
 # emable extendedglob under certain contexts:
 zstyle ':demo:some-context' list-colors-extended true
@@ -19,11 +19,19 @@ zstyle ':demo:some-context' list-colors-extended true
 zstyle ':demo:some-context' list-colors "${(@s[:])LS_COLORS}" '(#i)(*/|)license(|.*)=04'
 # (underline LICENSE, or license.txt, or similar)
 
-local file reply
 # color each file in the argument list
-for file; do
+print 'In :demo:some-context'
+for file;(){
+	local REPLY
 	ls-color::lookup :demo:some-context "$file"
 	# point to symlink resolution if it exists
-	print '\e['$REPLY'm'$file'\e[0m'
-done
+	print '  \e['$REPLY'm'$file'\e[0m '
+}
+print '\nIn :demo:other-context'
+for file;(){
+	local REPLY
+	ls-color::lookup :demo:other-context "$file"
+	# point to symlink resolution if it exists
+	print '  \e['$REPLY'm'$file'\e[0m '
+}
 
