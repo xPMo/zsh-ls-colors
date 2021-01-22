@@ -1,6 +1,9 @@
 # set the prefix for all functions
 local pfx=${1:-'ls-color'}
 
+# load needed modules
+zmodload -F zsh/stat b:zstat
+
 # {{{ From mode
 # Usage:
 # $1: filename
@@ -74,19 +77,6 @@ ${pfx}::from-name () {
 
 	# Return non-zero if no keys match
 	[[ ${REPLY::=$namecolors[(k)$1]} ]]
-} # }}}
-# {{{ Init
-# WARNING: initializes namecolors and modecolors in global scope
-${pfx}::init () {
-	emulate -L zsh
-
-	# Use $1 if provided, otherwise use LS_COLORS
-	# Use LSCOLORS on BSD
-	local LS_COLORS=${1:-${LS_COLORS:-$LSCOLORS}}
-
-	# read in LS_COLORS
-	typeset -gA namecolors=(${(@s:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
-	typeset -gA modecolors=(${(@Ms:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
 } # }}}
 # {{{ Match by
 # Usage:
@@ -176,5 +166,91 @@ ${pfx}::match-by () {
 		;;
 		*) return 2 ;;
 	esac; done
+} # }}}
+#{{{ Lookup
+# $1: context
+# $2: filename
+# $3: mode of file (if not, will attempt to resolve file)
+# $4: target of symlink (only applies if file is symlink)
+# $4: mode of target (only applies if file is symlink)
+${pfx}::lookup(){
+	emulate -L zsh
+	setopt cbases octalzeroes
+
+	local pfx=${0%::lookup}
+	local -a lscolors lstat
+
+	# lookup list-colors for the current context
+	zstyle -a "$1" list-colors lscolors
+	zstyle -t "$1" list-colors-extended &&
+		setopt extendedglob
+
+	local -A namecolors=(${(@s:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
+	local -A modecolors=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
+
+	[[ -z $2 ]] && return 1
+
+	if ! (($+3)); then
+		zstat -A lstat -L "$2"
+		3=$lstat[3]
+		4=$lstat[14]
+	fi
+
+	# See man 7 inode for more info
+
+	local -i reg=0
+	local -a codes
+
+	local -i st_mode=$(($3))
+	# file type
+	repeat 2;{ # repeat if symlink
+		case $(( st_mode & 0170000 )) in
+			$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
+			$(( 0120000 )) ) # symlink, special handling
+				# correct relative symlinks
+				# does the target exist?
+				if zstat -A lstat "$2" 2>/dev/null; then
+					if [[ $modecolors[ln] = target ]]; then
+						2=${2:A}
+						continue
+					else
+						REPLY=$modecolors[ln]
+					fi
+				else
+					REPLY=$modecolors[or]
+				fi
+				return
+			;;
+			$(( 0100000 )) ) codes=( ); reg=1 ;; # regular file
+			$(( 0060000 )) ) codes=( $modecolors[bd] ) ;;
+			$(( 0040000 )) ) codes=( $modecolors[di] ) ;;
+			$(( 0020000 )) ) codes=( $modecolors[cd] ) ;;
+			$(( 0010000 )) ) codes=( $modecolors[pi] ) ;;
+		esac
+
+		# setuid/setgid/sticky/other-writable
+		(( st_mode & 04000 )) && codes+=( $modecolors[su] )
+		(( st_mode & 02000 )) && codes+=( $modecolors[sg] )
+		(( ! reg )) && case $(( st_mode & 01002 )) in
+			# sticky
+			$(( 01000 )) ) codes+=( $modecolors[st] ) ;;
+			# other-writable
+			$(( 00002 )) ) codes+=( $modecolors[ow] ) ;;
+			# other-writable and sticky
+			$(( 01002 )) ) codes+=( $modecolors[tw] ) ;;
+		esac
+		break
+	}
+
+	# executable
+	if (( ! $#codes )); then
+		(( st_mode &  0111 )) && codes+=( $modecolors[ex] )
+	fi
+
+	REPLY=${(j:;:)codes}
+
+	# return nonzero if no matching code
+	[[ ${REPLY:=$namecolors[(k)$2]} ]]
+
 } # }}}
 # vim: set foldmethod=marker:

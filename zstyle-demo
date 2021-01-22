@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
+0="${${(M)0:#/*}:-$PWD/$0}"
+
+# load library functions
+source ls-colors.zsh ''
+
+# to name the functions with a different namespace
+# call source with a different argument
+#source my-plugin::ls
+
+# Same as :completion:* list-colors
+zstyle ':demo:*' list-colors "${(@s[:])LS_COLORS}"
+
+# emable extendedglob under certain contexts:
+zstyle ':demo:some-context' list-colors-extended true
+
+# set extra definitions in certain contexts:
+zstyle ':demo:some-context' list-colors "${(@s[:])LS_COLORS}" '(#i)(*/|)license(|.*)=04'
+# (underline LICENSE, or license.txt, or similar)
+
+local file reply
+# color each file in the argument list
+for file; do
+	ls-color::lookup :demo:some-context "$file"
+	# point to symlink resolution if it exists
+	print '\e['$REPLY'm'$file'\e[0m'
+done
+
