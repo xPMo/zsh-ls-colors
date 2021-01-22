@@ -203,7 +203,7 @@ ${pfx}::lookup(){
 
 	local -i st_mode=$(($3))
 	# file type
-	repeat 2;{ # repeat if symlink
+	repeat 2; do # repeat if symlink
 		case $(( st_mode & 0170000 )) in
 			$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
 			$(( 0120000 )) ) # symlink, special handling
@@ -212,6 +212,7 @@ ${pfx}::lookup(){
 				if zstat -A lstat "$2" 2>/dev/null; then
 					if [[ $modecolors[ln] = target ]]; then
 						2=${2:A}
+						st_mode=$(($lstat[3]))
 						continue
 					else
 						REPLY=$modecolors[ln]
@@ -240,7 +241,7 @@ ${pfx}::lookup(){
 			$(( 01002 )) ) codes+=( $modecolors[tw] ) ;;
 		esac
 		break
-	}
+	done
 
 	# executable
 	if (( ! $#codes )); then
