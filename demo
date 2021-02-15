@@ -63,6 +63,3 @@ for file; do
 	fi
 done
 
-ls-color::init
-time ( repeat 5000 ls-color::match-by $arg )
-

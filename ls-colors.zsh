@@ -1,9 +1,6 @@
 # set the prefix for all functions
 local pfx=${1:-'ls-color'}
 
-# load needed modules
-zmodload -F zsh/stat b:zstat
-
 # {{{ From mode
 # Usage:
 # $1: filename
@@ -77,6 +74,19 @@ ${pfx}::from-name () {
 
 	# Return non-zero if no keys match
 	[[ ${REPLY::=$namecolors[(k)$1]} ]]
+} # }}}
+# {{{ Init
+# WARNING: initializes namecolors and modecolors in global scope
+${pfx}::init () {
+	emulate -L zsh
+
+	# Use $1 if provided, otherwise use LS_COLORS
+	# Use LSCOLORS on BSD
+	local LS_COLORS=${1:-${LS_COLORS:-$LSCOLORS}}
+
+	# read in LS_COLORS
+	typeset -gA namecolors=(${(@s:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
+	typeset -gA modecolors=(${(@Ms:=:)${(@s.:.)LS_COLORS}:#[[:alpha:]][[:alpha:]]=*})
 } # }}}
 # {{{ Match by
 # Usage:
@@ -166,93 +176,5 @@ ${pfx}::match-by () {
 		;;
 		*) return 2 ;;
 	esac; done
-} # }}}
-#{{{ Lookup
-# $1: context
-# $2: filename
-# $3: mode of file (if not, will attempt to resolve file)
-# $4: target of symlink (only applies if file is symlink)
-# $5: mode of target (only applies if file is symlink)
-${pfx}::lookup(){
-	emulate -L zsh
-	setopt cbases octalzeroes
-
-	local pfx=${0%::lookup} style=$1 target=$2 ln_target=$4 ln_mode=$5
-	local -a lscolors lstat
-
-	# lookup list-colors for the current context
-	zstyle -a "$style" list-colors lscolors
-	zstyle -t "$style" list-colors-extended &&
-		setopt extendedglob
-
-	local -A namecolors=(${(@s:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
-	local -A modecolors=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
-
-	[[ -z $target ]] && return 1
-
-	local -i st_mode=$3
-	if ! (($#3)); then
-		zstat -A lstat -L "$target"
-		st_mode=$lstat[3]
-		ln_target=$lstat[14]
-	fi
-
-	# See man 7 inode for more info
-
-	local -i reg=0
-	local -a codes
-
-	# file type
-	repeat 2; do # repeat if symlink
-		case $(( st_mode & 0170000 )) in
-			$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
-			$(( 0120000 )) ) # symlink, special handling
-				# correct relative symlinks
-				# does the target exist?
-				if [[ -n $ln_mode ]] || zstat -A lstat "$target" 2>/dev/null; then
-					if [[ $modecolors[ln] = target ]]; then
-						# use $target:A instead of $ln_target to resolve symlink chains
-						target=${target:A}
-						st_mode=$(($lstat[3]))
-						continue
-					else
-						REPLY=$modecolors[ln]
-					fi
-				else
-					REPLY=$modecolors[or]
-				fi
-				return
-			;;
-			$(( 0100000 )) ) codes=( ); reg=1 ;; # regular file
-			$(( 0060000 )) ) codes=( $modecolors[bd] ) ;;
-			$(( 0040000 )) ) codes=( $modecolors[di] ) ;;
-			$(( 0020000 )) ) codes=( $modecolors[cd] ) ;;
-			$(( 0010000 )) ) codes=( $modecolors[pi] ) ;;
-		esac
-
-		# setuid/setgid/sticky/other-writable
-		(( st_mode & 04000 )) && codes+=( $modecolors[su] )
-		(( st_mode & 02000 )) && codes+=( $modecolors[sg] )
-		(( ! reg )) && case $(( st_mode & 01002 )) in
-			# sticky
-			$(( 01000 )) ) codes+=( $modecolors[st] ) ;;
-			# other-writable
-			$(( 00002 )) ) codes+=( $modecolors[ow] ) ;;
-			# other-writable and sticky
-			$(( 01002 )) ) codes+=( $modecolors[tw] ) ;;
-		esac
-		break
-	done
-
-	# executable
-	if (( ! $#codes )); then
-		(( st_mode &  0111 )) && codes+=( $modecolors[ex] )
-	fi
-
-	REPLY=${(j:;:)codes}
-
-	# return nonzero if no matching code
-	[[ ${REPLY:=$namecolors[(k)$target]} ]]
-
 } # }}}
 # vim: set foldmethod=marker:
