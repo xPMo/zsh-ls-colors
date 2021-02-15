@@ -27,7 +27,7 @@ ${pfx}::fmt(){
 	modecolors+=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
 	: ${modecolors[ec]:=$modecolors[lc]$modecolors[no]$modecolors[rc]}
 
-	local arg st_mode ln_target
+	local REPLY target st_mode ln_target
 	local -a codes final indicator lstat
 	for target; do
 		codes=() final=() indicator=()
@@ -109,6 +109,7 @@ ${pfx}::fmt(){
 			i:$indicator[1] j:$indicator[2] I:$modecolors[lc]$modecolors[tc]$modecolors[rc] \
 			F:$modecolors[lc]${final[1]:-${namecolors[(k)$target]:-$modecolors[no]}}$modecolors[rc] \
 			L:$modecolors[lc]${final[2]:-${namecolors[(k)$ln_target]:-$modecolors[no]}}$modecolors[rc]
+
 		case $opt_out in
 			-A) reply[$target]=$REPLY ;;
 			-o) print -rl "$REPLY" ;;
