@@ -21,7 +21,9 @@ zstyle ':demo:other-context' list-colors "${(@s[:])LS_COLORS}" '*.md=35' '(#i)(*
 
 # set custom format in certain contexts:
 zstyle ':demo:other-context' list-format '%F%f%r%(h.%I%i. ➤ %L%l%r)'
-zstyle ':demo:other-context:yet-another-context' list-format $'%F\e[7m\ue0b0%f%r%F\ue0b0%r'
+zstyle ':demo:other-context:yet-another-context' list-format $'%F\e[7m\ue0b0%f%r%F\ue0b0%r%(h.. (%L%l%r%))'
+
+setopt warncreateglobal
 
 # color each file in the argument list
 print 'In :demo:some-context'
