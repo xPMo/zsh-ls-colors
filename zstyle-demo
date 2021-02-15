@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
+0="${${(M)0:#/*}:-$PWD/$0}"
+
+# load library functions
+source ls-colors.zsh '' fmt
+
+# to name the functions with a different namespace
+# call source with a different argument
+#source my-plugin::ls
+
+# Same as :completion:* list-colors
+zstyle '*' list-colors "${(@s[:])LS_COLORS}" '*.md=35'
+
+# emable extendedglob under certain contexts:
+zstyle ':demo:other-context' list-colors-extended true
+
+# set extra definitions in certain contexts:
+zstyle ':demo:other-context' list-colors "${(@s[:])LS_COLORS}" '*.md=35' '(#i)(*/|)license(|.*)=04'
+# (underline LICENSE, or license.txt, or similar)
+
+# set custom format in certain contexts:
+zstyle ':demo:other-context' list-format '%F%f%r%(h.%I%i. ➤ %L%l%r)'
+zstyle ':demo:other-context:yet-another-context' list-format $'%F\e[7m\ue0b0%f%r%F\ue0b0%r'
+
+# color each file in the argument list
+print 'In :demo:some-context'
+ls-color::fmt -o :demo:some-context "$@"
+print '\nIn :demo:other-context'
+ls-color::fmt -o :demo:other-context "$@"
+print '\nIn :demo:other-context:yet-another-context'
+ls-color::fmt -o :demo:other-context:yet-another-context "$@"
