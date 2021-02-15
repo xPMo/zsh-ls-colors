@@ -32,7 +32,7 @@ ${pfx}::fmt(){
 	local -a codes final indicator
 	for target; do
 		codes=() final=() indicator=()
-		zstat -A lstat -L "$target"
+		zstat -A lstat -L - "$target"
 		st_mode=$lstat[3]
 		ln_target=$lstat[14]
 
@@ -55,7 +55,7 @@ ${pfx}::fmt(){
 				$((0120000)) ) # symlink, special handling
 					indicator+=(@)
 					# does the target exist?
-					if zstat -A lstat "$target" 2>/dev/null; then
+					if zstat -A lstat - "$target" 2>/dev/null; then
 						# restart with new st_mode
 						st_mode=$(($lstat[3]))
 						if [[ $modecolors[ln] = target ]]; then

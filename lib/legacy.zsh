@@ -133,10 +133,10 @@ ${pfx}::match-by () {
 			reply+=("$REPLY")
 		;;
 		l|lstat)
-			(($#lstat)) || zstat -A lstat -L $name || return 1
+			(($#lstat)) || zstat -A lstat -L - $name || return 1
 			if ((lstat[3] & 0170000 )); then
 				# follow symlink
-				(($#stat)) || zstat -A stat $name 2>/dev/null
+				(($#stat)) || zstat -A stat - $name 2>/dev/null
 			fi
 			${pfx}::from-mode "$name" "$lstat[3]" $stat[3]
 			if [[ $REPLY || ${2[1]} = L ]]; then
@@ -146,7 +146,7 @@ ${pfx}::match-by () {
 			fi
 		;;
 		s|stat)
-			(($#stat)) || zstat -A stat    $name || return 1
+			(($#stat)) || zstat -A stat - $name || return 1
 			${pfx}::from-mode $name $stat[3]
 			reply+=("$REPLY")
 			if [[ $REPLY || ${arg[1]} = S ]]; then
@@ -156,7 +156,7 @@ ${pfx}::match-by () {
 			fi
 		;;
 		f|follow)
-			(($#lstat)) || zstat -A lstat -L $name || return 1
+			(($#lstat)) || zstat -A lstat -L - $name || return 1
 			reply+=("$lstat[14]")
 		;;
 		a|all)
