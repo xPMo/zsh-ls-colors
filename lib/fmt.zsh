@@ -1,27 +1,30 @@
-local pfx=${1:-'ls-color'}
-
 zmodload zsh/zutil
 # args: context file [file ...]
 # -o: output to stdout
 # -a: output to $reply as array
 # -A: output to $reply as associative array
 # -f FORMAT: use FORMAT if context's format is not set
-${pfx}::fmt(){
+# -F FORMAT: force FORMAT
+${1:-ls-color}::fmt(){
 	
 	emulate -L zsh
 	setopt cbases octalzeroes
 
-	local -a opt_{out,}
-	zparseopts -D o=opt_out a=opt_out A=opt_out f=format
+	local -a opt_{out,}format format
+	zparseopts -D {o,a,A}=opt_out {f,F}:=opt_format
 
 	# lookup list-colors for the current context
 	zstyle -a "$1" list-colors lscolors
 	zstyle -t "$1" list-colors-extended &&
 		setopt extendedglob
-	zstyle -a "$1" list-format format
+	zstyle -a "$1" list-format style_format
 	shift
 
-	local -a format=(${format:-'%F%f%r%(h.%I%i. -> %L%l%r)'})
+	local fmt
+	case $opt_format[1] in
+		-F) fmt=${opt_format[2]} ;;
+		*)  fmt=${style_format:-${opt_format[2]:-'%F%f%r%(h.%I%i. -> %L%l%r)'}} ;;
+	esac
 	local -A namecolors=(${(@s:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
 	local -A modecolors=([lc]=$'\e[' [rc]=m [tc]=0 [sp]=0)
 	modecolors+=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
@@ -105,7 +108,7 @@ ${pfx}::fmt(){
 			[[ $ln_target ]] && final=("${final[1]:/target/$final[2]}" "${final[2]}")
 		fi
 
-		zformat -f REPLY "$format" f:$target l:$ln_target h:${ln_target:+1} r:$modecolors[ec] \
+		zformat -f REPLY "$fmt" f:$target l:$ln_target h:${ln_target:+1} r:$modecolors[ec] \
 			i:$indicator[1] j:$indicator[2] I:$modecolors[lc]$modecolors[tc]$modecolors[rc] \
 			F:$modecolors[lc]${final[1]:-${namecolors[(k)$target]:-$modecolors[no]}}$modecolors[rc] \
 			L:$modecolors[lc]${final[2]:-${namecolors[(k)$ln_target]:-$modecolors[no]}}$modecolors[rc]
