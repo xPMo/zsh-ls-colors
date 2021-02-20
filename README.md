@@ -124,7 +124,7 @@ ${prefix}::fmt -F $format     # force $format, ignore the list-format specified 
 
 ### Output method
 
-There are three ways `::fmt` can return its results:
+There are four ways `::fmt` can return its results:
 
 ```zsh
 ${prefix}::fmt -a ...     # [default] assign results to $reply as an array
