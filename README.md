@@ -56,7 +56,7 @@ This function takes a context and a list of files as input,
 and returns a list of colored strings, formatted according to `$format`.
 
 ```zsh
-${prefix}::fmt [ -f $format | -F $format ] [ -o | -a | -A ] $context $files[@]
+${prefix}::fmt [ -f $format | -F $format ] [ -o | -0 | -a | -A ] $context $files[@]
 ```
 
 ### Loading the library
@@ -130,6 +130,7 @@ There are three ways `::fmt` can return its results:
 ${prefix}::fmt -a ...     # [default] assign results to $reply as an array
 ${prefix}::fmt -A ...     # assign results to $reply as an associative array, with filenames as keys
 ${prefix}::fmt -o ...     # print results to stdout separated by newlines
+${prefix}::fmt -0 ...     # print results to stdout separated by NUL characters
 ```
 
 

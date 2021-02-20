@@ -1,6 +1,7 @@
 zmodload zsh/zutil
 # args: context file [file ...]
 # -o: output to stdout
+# -0: output null-delimited to stdout
 # -a: output to $reply as array
 # -A: output to $reply as associative array
 # -f FORMAT: use FORMAT if context's format is not set
@@ -11,7 +12,10 @@ ${1:-ls-color}::fmt(){
 	setopt cbases octalzeroes
 
 	local -a opt_{out,}format format
-	zparseopts -D {o,a,A}=opt_out {f,F}:=opt_format
+	zparseopts -D {0,o,a,A}=opt_out {f,F}:=opt_format
+	case $opt_out in
+		-o|-0) local -a reply ;;
+	esac
 
 	# lookup list-colors for the current context
 	zstyle -a "$1" list-colors lscolors
@@ -115,9 +119,12 @@ ${1:-ls-color}::fmt(){
 
 		case $opt_out in
 			-A) reply[$target]=$REPLY ;;
-			-o) print -rl "$REPLY" ;;
 			*)  reply+=("$REPLY") ;;
 		esac
 	done
+	case $opt_out in
+		-o) print -rC1 "${(@)reply}"  ;;
+		-0) print -rNC1 "${(@)reply}" ;;
+	esac
 } # }}}
 # vim: set foldmethod=marker:
