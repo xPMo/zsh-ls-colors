@@ -62,12 +62,12 @@ ${prefix}::fmt [ -f $format | -F $format ] [ -o | -a | -A ] $context $files[@]
 ### Loading the library
 
 Since functions are a public namespace,
-this plugin allows you to customize the preifix for your plugin:
+This library allows you to customize the preifix for your plugin:
 
 ```zsh
-# load functions as my-lscolors::{init,match-by,from-name,from-mode}
-# The remaining arguements to source determines which lib/ files you want to load.
-# If no arguements are provided, then all lib/*.zsh are loaded.
+# load function as my-lscolors::fmt
+# The remaining arguments to source determines which lib/ files you want to load.
+# If no arguments are provided, then all lib/*.zsh are loaded.
 source ${0:h}/ls-colors/ls-colors.zsh my-lscolors fmt
 ```
 
@@ -145,8 +145,8 @@ this plugin allows you to customize the preifix for your plugin:
 
 ```zsh
 # load functions as my-lscolors::{init,match-by,from-name,from-mode}
-# The remaining arguements to source determines which lib/ files you want to load.
-# If no arguements are provided, then all lib/*.zsh are loaded.
+# The remaining arguments to source determines which lib/ files you want to load.
+# If no arguments are provided, then all lib/*.zsh are loaded.
 source ${0:h}/ls-colors/ls-colors.zsh my-lscolors legacy
 ```
 
