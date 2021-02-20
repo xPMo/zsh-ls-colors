@@ -1,6 +1,6 @@
 # Zsh support for LS_COLORS
 
-![Demo screenshot](https://raw.githubusercontent.com/xPMo/zsh-ls-colors/image/demo.png)
+![Demo screenshot](https://raw.githubusercontent.com/xPMo/zsh-ls-colors/image/demo-new.png)
 
 A zsh library to use `LS_COLORS` in scripts or other plugins.
 
