@@ -4,10 +4,8 @@
 
 A zsh library to use `LS_COLORS` in scripts or other plugins.
 
-For a simple demo, see the `demo` script in this repo.
+For a simple demo, see the `zstyle-demo` script in this repo.
 
-For more advanced usage,
-instructions are located at top of the source files for `from-mode` and `from-name`.
 If a use case isn't adequately covered,
 please [open an issue](https://github.com/xPMo/zsh-ls-colors/issues/) !
 
@@ -52,6 +50,94 @@ git subtree add --prefix=ls-colors/ --squash -m 'Add ls-colors as a subtree' ls-
 git subtree pull --prefix=ls-colors/ --squash -m 'Update ls-colors to latest' ls-colors master 
 ```
 
+## API v2:
+
+This function takes a context and a list of files as input,
+and returns a list of colored strings, formatted according to `$format`.
+
+```zsh
+${prefix}::fmt [ -f $format | -F $format ] [ -o | -a | -A ] $context $files[@]
+```
+
+### Loading the library
+
+Since functions are a public namespace,
+this plugin allows you to customize the preifix for your plugin:
+
+```zsh
+# load functions as my-lscolors::{init,match-by,from-name,from-mode}
+# The remaining arguements to source determines which lib/ files you want to load.
+# If no arguements are provided, then all lib/*.zsh are loaded.
+source ${0:h}/ls-colors/ls-colors.zsh my-lscolors fmt
+```
+
+### Customizing Colors with styles
+
+The `::fmt` function uses the usual `list-colors` style to determine how to color the results.
+Set the style as follows:
+
+```zsh
+# Uses LS_COLORS format
+zstyle $pattern list-colors ${(s[:])LS_COLORS} '*.ext=1'
+```
+
+In addition, you can enable `extendedglob` for certain contexts:
+
+```zsh
+zstyle $pattern list-colors-extended true
+zstyle $pattern list-colors ${(s[:])LS_COLORS} '(#i).ext=1'
+```
+
+It's probably not a bad idea to just `zstyle '*' list-colors ${(s[:])LS_COLORS}`.
+
+### Customizing format with styles
+
+The `::fmt` function uses the `list-format` style to determine how to format the results.
+Set the style as follows:
+
+```zsh
+zstyle $pattern list-format '%F%f%r%(h.%I%i. -> %L%l%r)'
+```
+
+| Format specifier | Meaning | Example (`/bin/sh` symlinked to `dash`) |
+| --- | --- | --- |
+| `%F` | The color/console codes which match the file | `\e[0m\01;36m` |
+| `%f` | The filename | `/bin/sh` |
+| `%L` | The color/console codes which match the target of the symlink | `\e[0m\e[01;32m` |
+| `%l` | The target of the symlink | `dash` |
+| `%h` | `1` if this file is a symlink, otherwise empty (useful to conditionally output the link target) | `1` |
+| `%r` | The color/console codes normally used to reset the terminal style | `\e[0m` |
+| `%I` | The color for filetype indicators | `\e[0m` |
+| `%i` | The single-character filetype indicator the given file | `@` |
+| `%j` | The single-character filetype indicator for the target of the symlink | `*` |
+
+For more information on using these codes, see the section on `zformat` in `man zshmodules`.
+
+### Customizing format at runtime
+
+There are two flags to the `::fmt` function which change how `list-format` is used:
+
+```zsh
+${prefix}::fmt -f $format     # use $format if no list-format is specified for the current style
+${prefix}::fmt -F $format     # force $format, ignore the list-format specified for the current style
+```
+
+### Output method
+
+There are three ways `::fmt` can return its results:
+
+```zsh
+${prefix}::fmt -a ...     # [default] assign results to $reply as an array
+${prefix}::fmt -A ...     # assign results to $reply as an associative array, with filenames as keys
+${prefix}::fmt -o ...     # print results to stdout separated by newlines
+```
+
+
+## Legacy API:
+
+For more advanced usage,
+instructions are located at top of the source files for `from-mode` and `from-name`.
+
 ### Function namespacing
 
 Since functions are a public namespace,
@@ -59,7 +145,9 @@ this plugin allows you to customize the preifix for your plugin:
 
 ```zsh
 # load functions as my-lscolors::{init,match-by,from-name,from-mode}
-source ${0:h}/ls-colors/ls-colors.zsh my-lscolors
+# The remaining arguements to source determines which lib/ files you want to load.
+# If no arguements are provided, then all lib/*.zsh are loaded.
+source ${0:h}/ls-colors/ls-colors.zsh my-lscolors legacy
 ```
 
 ### Parameter namespacing
