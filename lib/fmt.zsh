@@ -15,8 +15,8 @@ ${1:-ls-color}::fmt(){
 	zparseopts -D {0,o,a,A}=opt_out {f,F}:=opt_format
 	case $opt_out in
 		-o|-0) local -a reply=() ;;
-		-a) typeset -ga reply=() ;;
 		-A) typeset -gA reply=() ;;
+		*) typeset -ga reply=() ;;
 	esac
 
 	# lookup list-colors for the current context
