@@ -88,7 +88,11 @@ zstyle $pattern list-colors-extended true
 zstyle $pattern list-colors ${(s[:])LS_COLORS} '(#i).ext=1'
 ```
 
-It's probably not a bad idea to just `zstyle '*' list-colors ${(s[:])LS_COLORS}`.
+_Personally, I like this method for dynamically getting LS_COLORS for all contexts:_
+
+```zsh
+zstyle -e '*' list-colors 'reply=(${(s[:])LS_COLORS})'
+```
 
 ### Customizing format with styles
 
