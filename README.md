@@ -7,7 +7,9 @@ A zsh library to use `LS_COLORS` in scripts or other plugins.
 For a simple demo, see the `zstyle-demo` script in this repo.
 
 If a use case isn't adequately covered,
-please [open an issue](https://github.com/xPMo/zsh-ls-colors/issues/) !
+please [open an issue](https://github.com/xPMo/zsh-ls-colors/issues/)!
+
+Finally, if you are making use of this plugin, [add it to the wiki](https://github.com/xPMo/zsh-ls-colors/wiki/Uses-in-the-wild)!
 
 ## Using zsh-ls-colors in a plugin
 
