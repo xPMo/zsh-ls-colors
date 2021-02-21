@@ -105,10 +105,12 @@ Set the style as follows:
 zstyle $pattern list-format '%F%f%r%(h.%I%i. -> %L%l%r)'
 ```
 
-| Format specifier | Meaning | Example (`/bin/sh` symlinked to `dash`) |
+| Format specifier | Meaning | Example (`PWD=/usr`, `./bin/sh` symlinked to `dash`) |
 | --- | --- | --- |
 | `%F` | The color/console codes which match the file | `\e[0m\01;36m` |
-| `%f` | The filename | `/bin/sh` |
+| `%f` | The file basename | `sh` |
+| `%P` | The file path provided | `./bin/sh` |
+| `%p` | The fully-qualified path | `/usr/bin/sh` |
 | `%L` | The color/console codes which match the target of the symlink | `\e[0m\e[01;32m` |
 | `%l` | The target of the symlink | `dash` |
 | `%h` | `1` if this file is a symlink, otherwise empty (useful to conditionally output the link target) | `1` |

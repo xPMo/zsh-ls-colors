@@ -114,8 +114,9 @@ ${1:-ls-color}::fmt(){
 			[[ $ln_target ]] && final=("${final[1]:/target/$final[2]}" "${final[2]}")
 		fi
 
-		zformat -f REPLY "$fmt" f:$target l:$ln_target h:${ln_target:+1} r:$modecolors[ec] \
-			i:$indicator[1] j:$indicator[2] I:$modecolors[lc]$modecolors[tc]$modecolors[rc] \
+		zformat -f REPLY "$fmt" P:$target p:${target:a} f:${target:t} l:$ln_target h:${ln_target:+1} \
+			i:$indicator[1] j:$indicator[2] r:$modecolors[ec] \
+			I:$modecolors[lc]$modecolors[tc]$modecolors[rc] \
 			F:$modecolors[lc]${final[1]:-${namecolors[(k)$target]:-$modecolors[no]}}$modecolors[rc] \
 			L:$modecolors[lc]${final[2]:-${namecolors[(k)$ln_target]:-$modecolors[no]}}$modecolors[rc]
 
