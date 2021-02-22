@@ -9,9 +9,10 @@ zmodload zsh/zutil
 ${1:-ls-color}::fmt(){
 	
 	emulate -L zsh
-	setopt cbases octalzeroes
+	setopt cbases octalzeroes warncreateglobal
 
-	local -a opt_{out,}format format
+	local -a opt_out opt_format lscolors style_format
+	local fmt
 	zparseopts -D {0,o,a,A}=opt_out {f,F}:=opt_format
 	case $opt_out in
 		-o|-0) local -a reply=() ;;
@@ -26,7 +27,6 @@ ${1:-ls-color}::fmt(){
 	zstyle -a "$1" list-format style_format
 	shift
 
-	local fmt
 	case $opt_format[1] in
 		-F) fmt=${opt_format[2]} ;;
 		*)  fmt=${style_format:-${opt_format[2]:-'%F%f%r%(h.%I%i. -> %L%l%r)'}} ;;
@@ -36,10 +36,11 @@ ${1:-ls-color}::fmt(){
 	modecolors+=(${(@Ms:=:)lscolors:#[[:alpha:]][[:alpha:]]=*})
 	: ${modecolors[ec]:=$modecolors[lc]$modecolors[no]$modecolors[rc]}
 
-	local REPLY target st_mode ln_target
-	local -a codes final indicator lstat
+	local REPLY target ln_target
+	local final indicator lstat
+	local -i st_mode mode_ugs
 	for target; do
-		codes=() final=() indicator=()
+		local code= final=() indicator=()
 		# Is this a file?
 		if zstat -A lstat -L - "$target" 2>/dev/null; then
 			st_mode=$lstat[3]
@@ -47,18 +48,41 @@ ${1:-ls-color}::fmt(){
 
 			# See man 7 inode for more info
 
-			local -i reg=0
+			local -i reg=0 dir=0
 
 			while # while ... continue ... break
 				case $(( st_mode & 0170000 )) in
 					# put the most common first
 					$((0040000)) )
-						codes=( $modecolors[di] )
 						indicator+=(/)
+						# other-writable and sticky
+						if ((st_mode & 01002 == 01002)) && [[ ${code::=$modecolors[tw]} != (|0|00) ]]
+						then
+						# other-writable
+						elif ((st_mode & 00002)) && [[ ${code::=$modecolors[ow]} != (|0|00) ]]
+						then
+						# sticky
+						elif ((st_mode & 01000)) && [[ ${code::=$modecolors[tw]} != (|0|00) ]];
+						then
+						# normal directory
+						else code=$modecolors[di]
+						fi
 					;;
 					$((0100000)) ) # regular file
-						codes=( $modecolors[fi] )
-						reg=1
+						# executable
+						((st_mode & 00111)) && indicator+=('*')
+						# set-uid
+						if ((st_mode & 04000)) && [[ ${code::=$modecolors[su]} != (|0|00) ]]
+						then
+						# set-gid
+						elif ((st_mode & 02000)) && [[ ${code::=$modecolors[sg]} != (|0|00) ]]
+						then
+						# executable
+						elif ((st_mode & 00111)) && [[ ${code::=$modecolors[ex]} != (|0|00) ]]
+						then
+						# normal file
+						else code=$modecolors[fi]
+						fi
 					;;
 					$((0120000)) ) # symlink, special handling
 						indicator+=(@)
@@ -74,40 +98,22 @@ ${1:-ls-color}::fmt(){
 						fi
 					;;
 					$((0140000)) )
-						codes=($modecolors[so])
+						code=$modecolors[so]
 						indicator+=('=')
 					;;
 					$((0060000)) )
-						codes=($modecolors[bd])
-						indicator+=('')
+						code=$modecolors[bd]
 					;;
 					$((0020000)) )
-						codes=($modecolors[cd])
-						indicator+=('')
+						code=$modecolors[cd]
 					;;
 					$((0010000)) )
-						codes=($modecolors[pi])
+						code=$modecolors[pi]
 						indicator+=('|')
 					;;
 				esac
 
-				# setuid/setgid/sticky/other-writable
-				(( st_mode & 04000 )) && codes+=( $modecolors[su] )
-				(( st_mode & 02000 )) && codes+=( $modecolors[sg] )
-				(( ! reg )) && case $(( st_mode & 01002 )) in
-					# sticky
-					$(( 01000 )) ) codes+=( $modecolors[st] ) ;;
-					# other-writable
-					$(( 00002 )) ) codes+=( $modecolors[ow] ) ;;
-					# other-writable and sticky
-					$(( 01002 )) ) codes+=( $modecolors[tw] ) ;;
-				esac
-				# executable
-				if (( ! $#codes && st_mode & 0111 )); then
-					codes+=( $modecolors[ex] )
-					indicator+=('*')
-				fi
-				final+=("${(j:;:)codes}")
+				final+=("$code")
 				break # exit loop
 			do; done
 			# ln=target handling

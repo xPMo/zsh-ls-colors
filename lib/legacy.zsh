@@ -19,13 +19,42 @@ ${pfx}::from-mode () {
 	[[ -z $2 ]] && return 1
 
 	local -i reg=0
-	local -a codes
 
 	local -i st_mode=$(($2))
 	# file type
 	case $(( st_mode & 0170000 )) in
-		$(( 0140000 )) ) codes=( $modecolors[so] ) ;;
-		$(( 0120000 )) ) # symlink, special handling
+		# put the most common first
+		$((0040000)) )
+			# other-writable and sticky
+			if ((st_mode & 01002 == 01002)) && [[ ${REPLY::=$modecolors[tw]} != (|0|00) ]]
+			then
+			# other-writable
+			elif ((st_mode & 00002)) && [[ ${REPLY::=$modecolors[ow]} != (|0|00) ]]
+			then
+			# sticky
+			elif ((st_mode & 01000)) && [[ ${REPLY::=$modecolors[tw]} != (|0|00) ]];
+			then
+			# normal directory
+			else REPLY=$modecolors[di]
+			fi
+		;;
+		$((0100000)) ) # regular file
+			# executable
+			((st_mode & 00111)) && indicator+=('*')
+			# set-uid
+			if ((st_mode & 04000)) && [[ ${REPLY::=$modecolors[su]} != (|0|00) ]]
+			then
+			# set-gid
+			elif ((st_mode & 02000)) && [[ ${REPLY::=$modecolors[sg]} != (|0|00) ]]
+			then
+			# executable
+			elif ((st_mode & 00111)) && [[ ${REPLY::=$modecolors[ex]} != (|0|00) ]]
+			then
+			# normal file
+			else REPLY=$modecolors[fi]
+			fi
+		;;
+		$((0120000)) ) # symlink, special handling
 			if ! (($+3)); then
 				REPLY=$modecolors[or]
 			elif [[ $modecolors[ln] = target ]]; then
@@ -35,32 +64,21 @@ ${pfx}::from-mode () {
 			fi
 			return
 		;;
-		$(( 0100000 )) ) codes=( ); reg=1 ;; # regular file
-		$(( 0060000 )) ) codes=( $modecolors[bd] ) ;;
-		$(( 0040000 )) ) codes=( $modecolors[di] ) ;;
-		$(( 0020000 )) ) codes=( $modecolors[cd] ) ;;
-		$(( 0010000 )) ) codes=( $modecolors[pi] ) ;;
+		$((0140000)) )
+			REPLY=$modecolors[so]
+		;;
+		$((0060000)) )
+			REPLY=$modecolors[bd]
+		;;
+		$((0020000)) )
+			REPLY=$modecolors[cd]
+		;;
+		$((0010000)) )
+			REPLY=$modecolors[pi]
+		;;
 	esac
 
-	# setuid/setgid/sticky/other-writable
-	(( st_mode & 04000 )) && codes+=( $modecolors[su] )
-	(( st_mode & 02000 )) && codes+=( $modecolors[sg] )
-	(( ! reg )) && case $(( st_mode & 01002 )) in
-		# sticky
-		$(( 01000 )) ) codes+=( $modecolors[st] ) ;;
-		# other-writable
-		$(( 00002 )) ) codes+=( $modecolors[ow] ) ;;
-		# other-writable and sticky
-		$(( 01002 )) ) codes+=( $modecolors[tw] ) ;;
-	esac
-
-	# executable
-	if (( ! $#codes )); then
-		(( st_mode &  0111 )) && codes+=( $modecolors[ex] )
-	fi
-
-	# return nonzero if no matching code
-	[[ ${REPLY::=${(j:;:)codes}} ]]
+	[[ -n $REPLY ]]
 } # }}}
 # {{{ From name
 # Usage:
