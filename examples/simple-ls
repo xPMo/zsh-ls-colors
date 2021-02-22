@@ -1,0 +1,90 @@
+#!/usr/bin/env zsh
+
+setopt extendedglob
+
+# {{{ Parse flags
+# see: man 1p ls
+zparseopts -D -E -F - \
+	{a,A}=flag_a \
+	{C,m,x,1}=flag_output \
+	{F,p}=flag_indicator \
+	{H,L}=flag_ln \
+	{S,f,t}=flag_sort \
+	{d,R}=flag_d \
+	{c,u}=flag_time \
+	r=flag_r \
+	{i,k,q,s,g,l,n,o}+=flag_misc \
+	|| exit 1
+
+# remove first -- or -
+end_opts=$@[(i)(--|-)]
+set -- "${@[0,end_opts-1]}" "${@[end_opts+1,-1]}"
+# }}}
+. ${0:A:h:h}/ls-colors.zsh lsc fmt
+# {{{ styles
+zstyle ':simple-ls:*'      list-colors "${(@s.:.)LS_COLORS}"
+zstyle ':simple-ls:*'      list-colors-extended true
+zstyle ':simple-ls:*'      list-format '%F%f%r%(h.%I%i. ➤ %L%l%r)'
+zstyle ':simple-ls:single' list-format '%F%P%r%(h.%I%i. ➤ %L%l%r)'
+# }}}
+# {{{ flags to glob specs
+case $flag_r$flag_sort$flag_time in
+	-S*) s_spec='(#qoL)' ;;
+	-r-S*) s_spec='(#qOL)' ;;
+
+	-f*) s_spec='(#qoN)' ;;
+	-r-f*) s_spec='(#qON)' ;;
+
+	-t-c) s_spec='(#qoc)' ;;
+	-r-t-c) s_spec='(#qOc)' ;;
+	
+	-t-u) s_spec='(#qoa)' ;;
+	-r-t-u) s_spec='(#qOa)' ;;
+
+	-r-t) s_spec='(#qom)' ;;
+	-t) s_spec='(#qOm)' ;;
+
+	-r) s_spec='(#qOn)' ;;
+esac
+
+case $flag_a$flag_r in
+	-A*) d_spec='/*(#qND)' ;;
+	-a-r)
+		d_spec='/*(#qND)'
+		prepend=('$dir/.' '$dir/..')
+	;;
+	-a)
+		d_spec='/*(#qND)'
+		append=('$dir/..' '$dir/.')
+	;;
+	*)  d_spec='/*(#qN)'
+esac
+
+case $flag_d in
+	-d) d_spec='' ;;
+	-R) r_spec='**' ;;
+esac
+
+case $flag_output in
+	# TODO
+	-1) p_spec='%s\n' ;;
+	*) p_spec='%s\n' ;;
+esac
+# }}}
+# {{{ file lists
+(($#)) || set -- .
+# list-dirs
+l_d=(${^@}(#qN/))
+# list-files (not-dirs)
+l_f=(${^@}(#qN^/))
+# }}}
+reply=()
+lsc::fmt :simple-ls:single $^l_f$~s_spec
+printf "$p_spec" "${(@)reply}"
+for dir in $l_d; do
+	pre=${reply:+$'\n'}
+	(($# > 1)) && printf '%s:\n' $pre$dir
+	lsc::fmt :simple-ls:dir ${(e)prepend} $dir$~r_spec$~d_spec$~s_spec ${(e)append}
+	printf "$p_spec" "${(@)reply}"
+done
+# vim: set foldmethod=marker:
