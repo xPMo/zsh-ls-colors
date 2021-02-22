@@ -102,7 +102,7 @@ The `::fmt` function uses the `list-format` style to determine how to format the
 Set the style as follows:
 
 ```zsh
-zstyle $pattern list-format '%F%f%r%(h.%I%i. -> %L%l%r)'
+zstyle $pattern list-format '%F%P%r%(h.%I%i. -> %L%l%r)'
 ```
 
 | Format specifier | Meaning | Example (`PWD=/usr`, `./bin/sh` symlinked to `dash`) |
@@ -120,6 +120,8 @@ zstyle $pattern list-format '%F%f%r%(h.%I%i. -> %L%l%r)'
 | `%j` | The single-character filetype indicator for the target of the symlink | `*` |
 
 For more information on using these codes, see the section on `zformat` in `man zshmodules`.
+
+More format specifiers may be added in the future, probably based on GNU find's `-printf` formats.
 
 ### Customizing format at runtime
 
