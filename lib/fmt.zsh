@@ -80,8 +80,8 @@ ${1:-ls-color}::fmt(){
 						# executable
 						elif ((st_mode & 00111)) && [[ ${code::=$modecolors[ex]} != (|0|00) ]]
 						then
-						# normal file
-						else code=$modecolors[fi]
+						# normal file, check namecolors first
+						else code=${namecolors[(k)$target]:-$modecolors[fi]}
 						fi
 					;;
 					$((0120000)) ) # symlink, special handling
